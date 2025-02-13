@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState,  } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Image } from 'react-native';
 import { api } from './services/axios'
+import logo from './assets/logo-rio-on.png'
 
 type DataTypes = {
   id: string,
@@ -15,15 +16,17 @@ export default function App() {
   const [dados, setDados] = useState<DataTypes[]>();
  const getPosts = async() => {
    try {
-    const response = await api.get('/posts');
+    const response = await api.get('/posts/');
+    
     setDados(response.data);
-   } catch(error){
+  } catch(error){
     console.error('Erro ao buscar os dados:', error);
-   }
- }
-  useEffect(() => {
-    getPosts()
-  }, []);
+  }
+}
+useEffect(() => {
+  getPosts()
+}, []);
+
 
   const handleNewPost = async () => {
     try {
@@ -98,30 +101,35 @@ export default function App() {
 //       console.error('Erro desconhecido:', error.message);
 //     }
 //   });
+//console.log(dados);
 console.log(dados);
-  
 
   return (
     <View style={styles.container}>
       <StatusBar style='light' />
       <View style={styles.header}>
+        <Image style={styles.image} source={logo} />
         <Text style={styles.textHeader}>Posts!</Text>
       </View>
       
       {!dados ? <Text>'Carregando...</Text> :
-        <FlatList         
-          data= {dados}
-          renderItem={({item}) => 
-            <View style={styles.itens}>
-              <Text style={styles.itemText}>Titulo: {item.title}</Text>
-              <Text style={styles.itemText}>Conteúdo: {item.body}</Text>     
-              <Text style={styles.itemText}>Autor: {item.userId}</Text>
-            </View>
-          }
-          keyExtractor={item => item.id} 
-        
-        />
-           
+      <>
+      
+      <FlatList         
+        data= {dados}
+        renderItem={({item}) => 
+          <View style={styles.itens}>
+            <Text style={styles.itemText}>id: {item.id}</Text>
+            <Text style={styles.itemText}>Titulo: {item.title}</Text>
+            <Text style={styles.itemText}>Conteúdo: {item.body}</Text>     
+            <Text style={styles.itemText}>Autor: {item.userId}</Text>
+          </View>
+        }
+        keyExtractor={item => item.id} 
+      
+      />
+        <Text>{dados[0].title}</Text> 
+      </>
                
       }
       <View style={styles.btns}>
@@ -149,17 +157,23 @@ console.log(dados);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: '#ccc',
     justifyContent: 'center',
+    alignItems: 'center'
   },
   header: {
-    width: '100%',
-    justifyContent: 'center',
+    width: '100%',  
+    flexDirection: 'row',  
     alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#2f00cc',
     padding: 24,
-    marginBottom: 10    
+    paddingTop: 36,
+    marginBottom: 10,        
+  },
+  image: {
+    width: 150,
+    height: 56
   },
   textHeader: {
     color: '#fff',
@@ -167,14 +181,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   itens: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#2f00cc',
     marginVertical: 4,
     marginHorizontal: 8,
     padding: 10,
     borderRadius: 5
   },
   itemText: {
-    marginVertical: 8
+    marginVertical: 8,
+    color: '#fff'
   },
   btns: {
     paddingInline: 8,
