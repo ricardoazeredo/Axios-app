@@ -13,10 +13,19 @@ type DataTypes = {
   lenght: number
 }
 export default function App() {
-  const [dados, setDados] = useState<DataTypes[]>();
+  const [dados, setDados] = useState<DataTypes[]>([]);
+  const [idState, setIdState ] = useState<number>(2);
+  const [id, setId ] = useState<number>(101);
+
+ console.log(idState)
+
  const getPosts = async() => {
    try {
-    const response = await api.get('/posts/');
+    const response = await api.get('/posts',{
+      params: { 
+        id: idState 
+      }
+    });
     
     setDados(response.data);
   } catch(error){
@@ -28,45 +37,57 @@ useEffect(() => {
 }, []);
 
 
-  const handleNewPost = async () => {
-    try {
-      const response = await api.post('/posts', {
-        title: "Novo Post",
-        body: 'Conteúdo do post',
-        userId: 1,
-      });
-      setDados(response.data)
-      console.log("Post criado", response.data);      
-    } catch (error){
-      console.log('Erro ao criar post',error);      
-    }
-  };
+const handleNewPost = async () => {
+  try {
+    const response = await api.post('/posts', {
+      title: 'Novo Post',
+      body: 'Conteúdo do post',
+      userId: 1,
+    });
+    setDados((prevDados) => [...prevDados, response.data]); // Adiciona ao array existente
+    console.log('Post criado', response.data);
+    
+  } catch (error) {
+    console.error('Erro ao criar post', error);
+  }
+};
+
 
 //Update
-  const handleUpdatePost = () => {
-      api.put('/posts/1', {
+const handleUpdatePost = async () => {
+  try {
+    const response = await api.put(`/posts/2`, {
       title: 'Post Atualizado',
       body: 'Novo conteúdo',
-      userId: 1
-    })
-    .then(response => {
-      setDados(response.data);
-      console.log('Post atualizado:', response.data);
-    } 
-    )
-    .catch(error => console.error('Erro ao atualizar post:', error));   
+      userId: 1,
+    });
+    
+    setDados((prevDados) =>
+      prevDados.map((post) =>
+        post.id === id.toString() ? response.data : post
+      )
+    );    
+    console.log('Post atualizado:', response.data);    
+  } catch (error) {
+    console.error('Erro ao atualizar post:', error);
   }
+};
+
 
 //Delete
-  const handleDeletePost = () => {
-    axios.delete('https://jsonplaceholder.typicode.com/posts/1')
-  .then(response => {
-      setDados(response.data);
-      console.log('Post excluído');
-    }    
-  )
-  .catch(error => console.error('Erro ao excluir post:', error));
+const handleDeletePost = async () => {  
+  console.log(id)
+  
+  try {
+    await api.delete(`/posts/${id}`);
+    setDados((prevDados) => prevDados.filter((post) => post.id !== id.toString()));
+    console.log('Post excluído');
+    getPosts()
+  } catch (error) {
+    console.error('Erro ao excluir post:', error);
   }
+};
+
     
   //interceptions
   //  const handleInterception  = () => { api.interceptors.response.use(response => {
@@ -77,7 +98,7 @@ useEffect(() => {
   //       return Promise.reject(error);
   //     });
   //   }
-  // Cancelamento de Requisições
+  // Cancelamento de Requisições'
 //   const controller = new AbortController();
     
 //     axios.get('https://jsonplaceholder.typicode.com/posts', {
@@ -101,8 +122,6 @@ useEffect(() => {
 //       console.error('Erro desconhecido:', error.message);
 //     }
 //   });
-//console.log(dados);
-console.log(dados);
 
   return (
     <View style={styles.container}>
@@ -112,23 +131,23 @@ console.log(dados);
         <Text style={styles.textHeader}>Posts!</Text>
       </View>
       
-      {!dados ? <Text>'Carregando...</Text> :
+      {!dados ? <Text>Carregando...</Text> :
       <>
-      
-      <FlatList         
-        data= {dados}
-        renderItem={({item}) => 
-          <View style={styles.itens}>
-            <Text style={styles.itemText}>id: {item.id}</Text>
-            <Text style={styles.itemText}>Titulo: {item.title}</Text>
-            <Text style={styles.itemText}>Conteúdo: {item.body}</Text>     
-            <Text style={styles.itemText}>Autor: {item.userId}</Text>
-          </View>
-        }
-        keyExtractor={item => item.id} 
-      
-      />
-        <Text>{dados[0].title}</Text> 
+       
+        <FlatList         
+          data= {dados}
+          renderItem={({item}) =>             
+            <View style={styles.itens}>
+              <Text style={styles.itemText}>id: {item.id}</Text>
+              <Text style={styles.itemText}>Titulo: {item.title}</Text>
+              <Text style={styles.itemText}>Conteúdo: {item.body}</Text>     
+              <Text style={styles.itemText}>Autor: {item.userId}</Text>
+            </View>
+          }
+          keyExtractor={(item) => String(item.id)} 
+          
+        />
+        
       </>
                
       }
